@@ -302,7 +302,14 @@ func (b *Builder) ProposalInit(pInit *types.ProposalInit) error {
 			ProtocolVersion: blockchain.SupportedStarknetVersion.String(),
 			// Todo: once the spec is finalised, handle these fields (if they still exist)
 			// OldStateRoot, VersionConstantCommitment, NextL2GasPriceFRI
-			L1GasPriceETH: header.L1GasPriceETH,
+			// Note: we use the header values by default, since the proposer only
+			// sends over a subset of the gas prices (eg for L1DataGasPrice it
+			// only sends the L1DataGasPriceWEI, but not the price in FRI, but
+			// we need both for the block hash)
+			L1GasPriceETH:  header.L1GasPriceETH,
+			L1GasPriceSTRK: header.L1GasPriceSTRK,
+			L1DataGasPrice: header.L1DataGasPrice,
+			L2GasPrice:     header.L2GasPrice,
 		},
 		Transactions: []core.Transaction{},
 		Receipts:     []*core.TransactionReceipt{},
@@ -328,9 +335,9 @@ func (b *Builder) SetBlockInfo(blockInfo *types.BlockInfo) {
 	pending.Block.Header.Number = blockInfo.BlockNumber
 	pending.Block.Header.SequencerAddress = &blockInfo.Builder
 	pending.Block.Header.Timestamp = blockInfo.Timestamp
-	pending.Block.Header.L2GasPrice = &core.GasPrice{PriceInFri: &blockInfo.L2GasPriceFRI}
+	pending.Block.Header.L2GasPrice.PriceInFri = &blockInfo.L2GasPriceFRI
 	pending.Block.Header.L1GasPriceETH = &blockInfo.L1GasPriceWEI
-	pending.Block.Header.L1DataGasPrice = &core.GasPrice{PriceInWei: &blockInfo.L1DataGasPriceWEI}
+	pending.Block.Header.L1DataGasPrice.PriceInWei = &blockInfo.L1DataGasPriceWEI
 	pending.Block.Header.L1DAMode = blockInfo.L1DAMode
 	b.pendingBlock.Store(pending)
 }
